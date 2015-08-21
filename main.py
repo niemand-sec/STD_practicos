@@ -136,10 +136,10 @@ if reply == "Read Holding Register":
     start_addr = fieldValues[1]
     reg_quantity = int(fieldValues[2])
 
-    for i in range(1,times):
-        recv = struct.pack("B", id) + F_03 + start_addr.decode("hex") + struct.pack("!h", reg_quantity)
-        recv = recv  + struct.pack("H", calculate_crc16(recv))
-        recv_multiple_values(recv)
+
+    recv = struct.pack("B", id) + F_03 + start_addr.decode("hex") + struct.pack("!h", reg_quantity)
+    recv = recv  + struct.pack("H", calculate_crc16(recv))
+    recv_multiple_values(recv)
 
 
 
