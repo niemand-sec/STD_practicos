@@ -39,19 +39,17 @@ def send_value( str ) :
 #     print "The value received is %s" %print_hex(respond[3:5])
 
 def recv_multiple_values ( str ):
-    print "Asking value of %s register(s) from address 0x%s" %(reg_quantity, start_addr)
+    print "Asking value of %s register(s) from address 0x%s" %(quantity, start_addr)
     respond = ""
     count = ser.timeout - 1
     while (count >= 0  and sys.getsizeof(respond) == 21  ) :
         print "Sending: " + print_hex(str)
         ser.write(str)
-        respond = ser.read(5 + int(reg_quantity)*2 )
+        respond = ser.read(5 + int(quantity)*2 )
         count -= 1
-    print sys.getsizeof(respond)
     print "Received : " + print_hex(respond)
     if sys.getsizeof(respond) > 26 :
-        for i in range(0,int(reg_quantity)):
-            print i
+        for i in range(0,int(quantity)):
             print "The value received is %s" %print_hex(respond[3+i*2:5+i*2])
 
 def write_multiple_values ( str ) :
@@ -133,15 +131,32 @@ if reply == "Read Holding Register":
     fieldValues = easygui.multenterbox(msg,title, fieldNames)
 
     id = int(fieldValues[0])
-    start_addr = fieldValues[1]
-    reg_quantity = int(fieldValues[2])
+    start_addr = int(fieldValues[1])
+    reg_quantity = float(fieldValues[2])
 
+    times = int(reg_quantity) // 125
 
-    recv = struct.pack("B", id) + F_03 + start_addr.decode("hex") + struct.pack("!h", reg_quantity)
-    recv = recv  + struct.pack("H", calculate_crc16(recv))
-    recv_multiple_values(recv)
+    if (reg_quantity/125 - times) > 0 and reg_quantity > 125 :
+        times += 1
+    elif reg_quantity < 125 :
+        times = 1
 
-
+    reg_restantes = reg_quantity
+    count = 1
+    while (times > 0) :
+        quantity = 0.0
+        if reg_restantes < 125 :
+            quantity = reg_restantes
+        else :
+            quantity = reg_restantes - (( (reg_quantity)/125 )  - count ) * 125
+        print quantity
+        recv = struct.pack("B", id) + F_03 + struct.pack("!h",start_addr) + struct.pack("!h", quantity)
+        recv = recv  + struct.pack("H", calculate_crc16(recv))
+        recv_multiple_values(recv)
+        start_addr += 125
+        reg_restantes -= quantity
+        times -= 1
+        count += 1
 
 elif reply == "Write Single Register":
     fieldNames = ["ID","Register Address","Register Value"]
