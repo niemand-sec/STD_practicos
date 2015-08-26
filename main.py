@@ -53,7 +53,6 @@ def recv_multiple_values ( str ):
             print "The value received is %s" %print_hex(respond[3+i*2:5+i*2])
 
 def write_multiple_values ( str ) :
-    print "write_Multiple_values"
     print "Writing 0x%s registers in address from 0x%s" %(int(reg_quantity), start_addr)
     respond = ""
     count = ser.timeout - 1
@@ -64,7 +63,7 @@ def write_multiple_values ( str ) :
         count -= 1
 
     print "Received : " + print_hex(respond)
-    if str == respond:
+    if sys.getsizeof(respond) >21 and "\10" == respond[1]:
         print "The value was assigned successfully"
     else:
         print "The value wasnt assigned"
