@@ -47,7 +47,8 @@ def recv_multiple_values ( str ):
         ser.write(str)
         respond = ser.read(5 + int(quantity)*2 )
         count -= 1
-    print "Received : " + print_hex(respond)
+    print "Received : \n"
+    print "Hexadecimal: " + print_hex(respond) + "\nDecimal: " + str(int(respond, 16)) + "\nBinario: " + str(bin(respond))
     if sys.getsizeof(respond) > 26 :
         for i in range(0,int(quantity)):
             print "The value received is %s" %print_hex(respond[3+i*2:5+i*2])
@@ -110,7 +111,7 @@ fieldValues_port = easygui.multenterbox(msg,title, fieldNames)
 
 ser.timeout = int(fieldValues_port[0])
 attempts = int(fieldValues_port[1])
-
+sys.stdout = open('output', 'w')
 ser.open()
 
 
@@ -199,3 +200,6 @@ elif reply == "Write Multiple Register":
 
 
 ser.close()
+sys.stdout = open ('output', 'r')
+easygui.codebox(msg, title, sys.stdout.readlines())
+#sys.stdout.close()
