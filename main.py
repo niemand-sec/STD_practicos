@@ -12,6 +12,7 @@ from ctypes import create_string_buffer
 import base64
 import serial.tools.list_ports
 
+
 def print_hex( str ):
     return ':'.join(x.encode('hex') for x in str)
 
@@ -35,7 +36,7 @@ def send_value( str ) :
         print "The value wasnt assigned"
 
 
-def recv_multiple_values ( str ):
+def recv_multiple_values ( str, value_print ):
     print "Asking value of %s register(s) from address 0x%s" %(quantity, start_addr)
     respond = ""
     count = ser.timeout - 1
@@ -47,7 +48,7 @@ def recv_multiple_values ( str ):
     print "Received : " + print_hex(respond)
     if sys.getsizeof(respond) > 26 :
         for i in range(0,int(quantity)):
-            print "[%s]\t=>\t%s\t=>\t" %(i , print_hex_without_colon(respond[3+i*2:5+i*2])),
+            print "[%s]\t=>\t%s\t=>\t" %(value_print * 125 + i , print_hex_without_colon(respond[3+i*2:5+i*2])),
             print "%s\t=>\t" %struct.unpack('!H', respond[3+i*2:5+i*2]),
             print ' '.join('{0:08b}'.format(ord(x), 'b') for x in respond[3+i*2:5+i*2])
             #print "%s" %binascii.unhexlify(respond[3+i*2:5+i*2])
@@ -85,6 +86,7 @@ global reg_quantity
 global reg_value
 global attempts
 global byte_count
+global value_printing
 F_03 = "\x03"
 F_06 = "\x06"
 F_16 = "\x10"
@@ -125,7 +127,7 @@ print ser
 print "Initiating..."
 
 while(True) :
-
+    value_print = 0
     sys.stdout = open('output', 'w')
     title = "Sistema de Transmision de Datos"
     msg = "MODBUS"
@@ -159,7 +161,8 @@ while(True) :
             print quantity
             recv = struct.pack("B", id) + F_03 + struct.pack("!h",start_addr) + struct.pack("!h", quantity)
             recv = recv  + struct.pack("H", calculate_crc16(recv))
-            recv_multiple_values(recv)
+            recv_multiple_values(recv, value_print)
+            value_print +=1
             start_addr += 125
             reg_restantes -= quantity
             times -= 1
