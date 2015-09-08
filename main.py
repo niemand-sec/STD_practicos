@@ -19,24 +19,40 @@ def print_hex( str ):
 def print_hex_without_colon( str ):
     return ''.join(x.encode('hex') for x in str)
 
-def send_value( str ) :
+def manage_error( packet ):
+    print "The value wasnt assigned"
+    if packet[2] == "\x01" :
+        print "ILLEGAL FUNCTION"
+    elif packet[2] == "\x02":
+        print "ILLEGAL DATA ADDRESS"
+    elif packet[2] == "\x03":
+        print "ILLEGAL DATA VALUE"
+    elif packet[2] == "\x04":
+        print "SLAVE DEVICE FAILURE"
+    else:
+        print "Transmission error"
+
+def send_value( pckt ) :
     print "Writing value 0x%s in address 0x%s" %(reg_value, start_addr)
     respond = ""
     count = ser.timeout -1
     while (count >= 0  and sys.getsizeof(respond) == 21  ) :
-        print "Sending: " + print_hex(str)
-        ser.write(str)
+        print "Sending: " + print_hex(pckt)
+        ser.write(pckt)
         respond = ser.read(8)
         count -= 1
-
     print "Received : " + print_hex(respond)
-    if str == respond:
-        print "The value was assigned successfully"
+    if sys.getsizeof(respond) > 21:
+        if "\x86" == respond[1]:
+            manage_error(respond)
+        elif respond[len(respond)-2:] == struct.pack("H", calculate_crc16(respond[:len(respond)-2])):
+            print "The value was assigned successfully"
     else:
-        print "The value wasnt assigned"
+            print "No response"
 
 
-def recv_multiple_values ( str, value_print ):
+
+def recv_multiple_values ( str):
     print "Asking value of %s register(s) from address 0x%s" %(quantity, start_addr)
     respond = ""
     count = ser.timeout - 1
@@ -47,13 +63,17 @@ def recv_multiple_values ( str, value_print ):
         count -= 1
     print "Received : " + print_hex(respond)
     if sys.getsizeof(respond) > 26 :
-        for i in range(0,int(quantity)):
-            print "[%s]\t=>\t%s\t=>\t" %(value_print * 125 + i , print_hex_without_colon(respond[3+i*2:5+i*2])),
-            print "%s\t=>\t" %struct.unpack('!H', respond[3+i*2:5+i*2]),
-            print ' '.join('{0:08b}'.format(ord(x), 'b') for x in respond[3+i*2:5+i*2])
-            #print "%s" %binascii.unhexlify(respond[3+i*2:5+i*2])
-            #print "The value received in DEC is %s" %struct.unpack('!H', respond[3+i*2:5+i*2])
-            #print "The value received in BIN is %s" %base64.b16decode(respond[3+i*2:5+i*2])
+        if respond[len(respond)-2:] == struct.pack("H", calculate_crc16(respond[:len(respond)-2])):
+            for i in range(0,int(quantity)):
+                print "[%s]\t=>\t%s\t=>\t" %(value_print * 125 + i + 1 + index_reg , print_hex_without_colon(respond[3+i*2:5+i*2])),
+                print "%s\t=>\t" %struct.unpack('!H', respond[3+i*2:5+i*2]),
+                print ' '.join('{0:08b}'.format(ord(x), 'b') for x in respond[3+i*2:5+i*2])
+        else :
+            print "Transmission error"
+    elif sys.getsizeof(respond) == 26 :
+        manage_error(respond)
+    elif sys.getsizeof(respond) == 21 :
+        print "No response"
 
 
 def write_multiple_values ( str ) :
@@ -68,10 +88,16 @@ def write_multiple_values ( str ) :
 
     print "Received : " + print_hex(respond)
 
-    if sys.getsizeof(respond) >21 and "\x10" == respond[1]:
-        print "The value was assigned successfully"
+    if sys.getsizeof(respond) >21:
+        if respond[len(respond)-2:] == struct.pack("H", calculate_crc16(respond[:len(respond)-2])) :
+            if "\x90" == respond[1]:
+                manage_error(respond)
+            else :
+                print "The values were assigned successfully"
+        else :
+            print "Transmission error"
     else:
-        print "The value wasnt assigned"
+        print "No response"
 
 
 def calculate_crc16( str ) :
@@ -119,12 +145,12 @@ ser.baudrate = int(fieldValues_port[2])
 ser.bytesize = int(fieldValues_port[3])
 ser.parity = fieldValues_port[4]
 
-sys.stdout = open('output', 'w')
+#sys.stdout = open('output', 'w')
 ser.open()
 
-print ser
+#print ser
 
-print "Initiating..."
+#print "Initiating..."
 
 while(True) :
     value_print = 0
@@ -142,14 +168,12 @@ while(True) :
         id = int(fieldValues[0])
         start_addr = int(fieldValues[1])
         reg_quantity = float(fieldValues[2])
-
         times = int(reg_quantity) // 125
-
         if (reg_quantity/125 - times) > 0 and reg_quantity > 125 :
             times += 1
         elif reg_quantity < 125 :
             times = 1
-
+        index_reg = start_addr
         reg_restantes = reg_quantity
         count = 1
         while (times > 0) :
@@ -158,12 +182,11 @@ while(True) :
                 quantity = reg_restantes
             else :
                 quantity = reg_restantes - (( (reg_quantity)/125 )  - count ) * 125
-            print quantity
             recv = struct.pack("B", id) + F_03 + struct.pack("!h",start_addr) + struct.pack("!h", quantity)
             recv = recv  + struct.pack("H", calculate_crc16(recv))
-            recv_multiple_values(recv, value_print)
+            recv_multiple_values(recv)
             value_print +=1
-            start_addr += 125
+            start_addr = start_addr +  125
             reg_restantes -= quantity
             times -= 1
             count += 1
@@ -174,16 +197,14 @@ while(True) :
         fieldValues = easygui.multenterbox(msg,title, fieldNames)
 
         id = int(fieldValues[0])
-        start_addr = fieldValues[1]
+        start_addr = int(fieldValues[1])
         reg_value = int(fieldValues[2])
 
 
-        send = struct.pack("B", id) + F_06 + start_addr.decode("hex") + struct.pack("!H", reg_value)
+        send = struct.pack("B", id) + F_06 + struct.pack("!h",start_addr) + struct.pack("!H", reg_value)
         #send = id.decode("hex") + F_06 + start_addr.decode("hex") + reg_value.decode("hex")
         send = send + struct.pack("H", calculate_crc16(send))
         send_value(send)
-
-
 
 
     elif reply == "Write Multiple Register":
@@ -192,17 +213,14 @@ while(True) :
         fieldValues = easygui.multenterbox(msg,title, fieldNames)
 
         id = int(fieldValues[0])
-        start_addr = fieldValues[1]
+        start_addr = int(fieldValues[1])
         reg_quantity = int(fieldValues[2])
         byte_count = int(fieldValues[3])
         reg_value = fieldValues[4].split(' ')
 
-        print reg_value
+        send_multiple = struct.pack("B", id) + "\x10" + struct.pack("!h",start_addr) + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count)
 
-
-        send_multiple = struct.pack("B", id) + "\x10" + start_addr.decode("hex") + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count)
-
-        for value in range(0, reg_quantity):
+        for value in range(0, reg_quantity):  # FUNCIONA CON 123 pero con 124 y 125 no
             send_multiple = send_multiple + struct.pack("!H", int(reg_value[value]))
         send_multiple = send_multiple + struct.pack("H", calculate_crc16(send_multiple))
         write_multiple_values(send_multiple)
