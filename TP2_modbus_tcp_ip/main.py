@@ -11,7 +11,7 @@ import sys
 from ctypes import create_string_buffer
 import base64
 import serial.tools.list_ports
-
+import socket
 
 def print_hex( str ):
     return ':'.join(x.encode('hex') for x in str)
@@ -118,118 +118,139 @@ F_06 = "\x06"
 F_16 = "\x10"
 
 
-ser = serial.Serial()
+title = "Sistema de Transmision de Datos"
+msg = "MODBUS"
+choices = ["TCP/IP","Serial Port"]
+reply = easygui.buttonbox(msg,title, choices=choices)
 
-ports = list(serial.tools.list_ports.comports())
+if reply == "TCP/IP" :
 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(("127.0.0.1", 502))
 
-msg = "Select the port to use"
-title = "Selecting Serial Port"
-choices = []
-for port in ports:
-    choices.append(port[0])
-choice = easygui.choicebox(msg, title, choices)
+    print "asd"
+    mensaje = "\x01\x00\x00\x00\x00\x06\x01\x03\x00\x00\x00\x02"
+    s.send(mensaje)
+    print print_hex(s.recv(12))
 
-ser.port = int(choice[len(choice)-1:]) - 1
-
-
-msg = "Setting the port"
-title = "Setting the port "
-fieldNames = ["Timeout","Attempts","Baudrate","ByteSize","Parity", ]
-fieldValues_port = []  # we start with blanks for the values
-fieldValues_port = easygui.multenterbox(msg,title, fieldNames)
-
-ser.timeout = int(fieldValues_port[0])
-attempts = int(fieldValues_port[1])
-ser.baudrate = int(fieldValues_port[2])
-ser.bytesize = int(fieldValues_port[3])
-ser.parity = fieldValues_port[4]
-
-#sys.stdout = open('output', 'w')
-ser.open()
-
-#print ser
-
-#print "Initiating..."
-
-while(True) :
-    value_print = 0
-    sys.stdout = open('output', 'w')
-    title = "Sistema de Transmision de Datos"
-    msg = "MODBUS"
-    choices = ["Read Holding Register","Write Single Register", "Write Multiple Register"]
-    reply = easygui.buttonbox(msg,title, choices=choices)
-
-    if reply == "Read Holding Register":
-        fieldNames = ["ID","Starting address","Quantity of Registers"]
-        fieldValues = []  # we start with blanks for the values
-        fieldValues = easygui.multenterbox(msg,title, fieldNames)
-
-        id = int(fieldValues[0])
-        start_addr = int(fieldValues[1])
-        reg_quantity = float(fieldValues[2])
-        times = int(reg_quantity) // 125
-        if (reg_quantity/125 - times) > 0 and reg_quantity > 125 :
-            times += 1
-        elif reg_quantity < 125 :
-            times = 1
-        index_reg = start_addr
-        reg_restantes = reg_quantity
-        count = 1
-        while (times > 0) :
-            quantity = 0.0
-            if reg_restantes < 125 :
-                quantity = reg_restantes
-            else :
-                quantity = reg_restantes - (( (reg_quantity)/125 )  - count ) * 125
-            recv = struct.pack("B", id) + F_03 + struct.pack("!h",start_addr) + struct.pack("!h", quantity)
-            recv = recv  + struct.pack("H", calculate_crc16(recv))
-            recv_multiple_values(recv)
-            value_print +=1
-            start_addr = start_addr +  125
-            reg_restantes -= quantity
-            times -= 1
-            count += 1
-
-    elif reply == "Write Single Register":
-        fieldNames = ["ID","Register Address","Register Value"]
-        fieldValues = []  # we start with blanks for the values
-        fieldValues = easygui.multenterbox(msg,title, fieldNames)
-
-        id = int(fieldValues[0])
-        start_addr = int(fieldValues[1])
-        reg_value = int(fieldValues[2])
+elif reply == "Serial Port":
 
 
-        send = struct.pack("B", id) + F_06 + struct.pack("!h",start_addr) + struct.pack("!H", reg_value)
-        #send = id.decode("hex") + F_06 + start_addr.decode("hex") + reg_value.decode("hex")
-        send = send + struct.pack("H", calculate_crc16(send))
-        send_value(send)
+    ser = serial.Serial()
+
+    ports = list(serial.tools.list_ports.comports())
 
 
-    elif reply == "Write Multiple Register":
-        fieldNames = ["ID","Starting Address","Quantity of Registers", "Byte count", "Registers Value"]
-        fieldValues = []  # we start with blanks for the values
-        fieldValues = easygui.multenterbox(msg,title, fieldNames)
+    msg = "Select the port to use"
+    title = "Selecting Serial Port"
+    choices = []
+    for port in ports:
+        choices.append(port[0])
+    choice = easygui.choicebox(msg, title, choices)
 
-        id = int(fieldValues[0])
-        start_addr = int(fieldValues[1])
-        reg_quantity = int(fieldValues[2])
-        byte_count = int(fieldValues[3])
-        reg_value = fieldValues[4].split(' ')
-
-        send_multiple = struct.pack("B", id) + "\x10" + struct.pack("!h",start_addr) + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count)
-
-        for value in range(0, reg_quantity):  # FUNCIONA CON 123 pero con 124 y 125 no
-            send_multiple = send_multiple + struct.pack("!H", int(reg_value[value]))
-        send_multiple = send_multiple + struct.pack("H", calculate_crc16(send_multiple))
-        write_multiple_values(send_multiple)
+    ser.port = int(choice[len(choice)-1:]) - 1
 
 
+    msg = "Setting the port"
+    title = "Setting the port "
+    fieldNames = ["Timeout","Attempts","Baudrate","ByteSize","Parity", ]
+    fieldValues_port = []  # we start with blanks for the values
+    fieldValues_port = easygui.multenterbox(msg,title, fieldNames)
 
-    sys.stdout = open ('output', 'r')
-    easygui.codebox(msg, title, sys.stdout.readlines())
-    #sys.stdout.close()
+    ser.timeout = int(fieldValues_port[0])
+    attempts = int(fieldValues_port[1])
+    ser.baudrate = int(fieldValues_port[2])
+    ser.bytesize = int(fieldValues_port[3])
+    ser.parity = fieldValues_port[4]
+
+    #sys.stdout = open('output', 'w')
+    ser.open()
+
+    #print ser
+
+    #print "Initiating..."
+
+    while(True) :
+        value_print = 0
+        sys.stdout = open('output', 'w')
+        title = "Sistema de Transmision de Datos"
+        msg = "MODBUS"
+        choices = ["Read Holding Register","Write Single Register", "Write Multiple Register"]
+        reply = easygui.buttonbox(msg,title, choices=choices)
+
+        if reply == "Read Holding Register":
+            fieldNames = ["ID","Starting address","Quantity of Registers"]
+            fieldValues = []  # we start with blanks for the values
+            fieldValues = easygui.multenterbox(msg,title, fieldNames)
+
+            id = int(fieldValues[0])
+            start_addr = int(fieldValues[1])
+            reg_quantity = float(fieldValues[2])
+            times = int(reg_quantity) // 125
+            if (reg_quantity/125 - times) > 0 and reg_quantity > 125 :
+                times += 1
+            elif reg_quantity < 125 :
+                times = 1
+            index_reg = start_addr
+            reg_restantes = reg_quantity
+            count = 1
+            while (times > 0) :
+                quantity = 0.0
+                if reg_restantes < 125 :
+                    quantity = reg_restantes
+                else :
+                    quantity = reg_restantes - (( (reg_quantity)/125 )  - count ) * 125
+                recv = struct.pack("B", id) + F_03 + struct.pack("!h",start_addr) + struct.pack("!h", quantity)
+                recv = recv  + struct.pack("H", calculate_crc16(recv))
+                recv_multiple_values(recv)
+                value_print +=1
+                start_addr = start_addr +  125
+                reg_restantes -= quantity
+                times -= 1
+                count += 1
+
+        elif reply == "Write Single Register":
+            fieldNames = ["ID","Register Address","Register Value"]
+            fieldValues = []  # we start with blanks for the values
+            fieldValues = easygui.multenterbox(msg,title, fieldNames)
+
+            id = int(fieldValues[0])
+            start_addr = int(fieldValues[1])
+            reg_value = int(fieldValues[2])
 
 
-ser.close()
+            send = struct.pack("B", id) + F_06 + struct.pack("!h",start_addr) + struct.pack("!H", reg_value)
+            #send = id.decode("hex") + F_06 + start_addr.decode("hex") + reg_value.decode("hex")
+            send = send + struct.pack("H", calculate_crc16(send))
+            send_value(send)
+
+
+        elif reply == "Write Multiple Register":
+            fieldNames = ["ID","Starting Address","Quantity of Registers", "Byte count", "Registers Value"]
+            fieldValues = []  # we start with blanks for the values
+            fieldValues = easygui.multenterbox(msg,title, fieldNames)
+
+            id = int(fieldValues[0])
+            start_addr = int(fieldValues[1])
+            reg_quantity = int(fieldValues[2])
+            byte_count = int(fieldValues[3])
+            reg_value = fieldValues[4].split(' ')
+
+            send_multiple = struct.pack("B", id) + "\x10" + struct.pack("!h",start_addr) + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count)
+
+            for value in range(0, reg_quantity):  # FUNCIONA CON 123 pero con 124 y 125 no
+                send_multiple = send_multiple + struct.pack("!H", int(reg_value[value]))
+            send_multiple = send_multiple + struct.pack("H", calculate_crc16(send_multiple))
+            write_multiple_values(send_multiple)
+
+
+
+        sys.stdout = open ('output', 'r')
+        easygui.codebox(msg, title, sys.stdout.readlines())
+        #sys.stdout.close()
+
+    ser.close()
+else :
+    print "Incorrect option"
+
+
