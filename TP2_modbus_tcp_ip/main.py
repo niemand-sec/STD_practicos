@@ -163,12 +163,9 @@ def write_multiple_values ( str ) :
 def write_multiple_values_tcp ( str ) :
     print "Writing 0x%s registers in address from 0x%s" %(int(reg_quantity), start_addr)
     respond = ""
-    count = ser.timeout - 1
-    while (count >= 0  and sys.getsizeof(respond) == 21  ) :  # cambiar para tcp
-        print "Sending: " + print_hex(str)
-        ser.write(str)  #cambiar para tcp
-        respond = ser.read(8)   #cambiar para tcp
-        count -= 1
+    print "Sending: " + print_hex(str)
+    s.send(str)  #cambiar para tcp
+    respond = s.recv(12)   #cambiar para tcp
 
     print "Received : " + print_hex(respond)
 
@@ -199,7 +196,7 @@ global value_printing
 F_03 = "\x03"
 F_06 = "\x06"
 F_16 = "\x10"
-
+global tx_id
 
 title = "Sistema de Transmision de Datos"
 msg = "MODBUS"
@@ -213,7 +210,7 @@ if reply == "TCP/IP" :
     fieldNames = ["IP","Port" ]
     fieldValues = ["localhost", "502"]  # we start with blanks for the values
     fieldValues = easygui.multenterbox(msg,title, fieldNames, fieldValues)
-
+    tx_id = 0
     ip = fieldValues[0]
     port = int(fieldValues[1])
     print ip
@@ -287,12 +284,12 @@ if reply == "TCP/IP" :
             reg_quantity = int(fieldValues[2])
             byte_count = int(fieldValues[3])
             reg_value = fieldValues[4].split(' ')
-
-            send_multiple = struct.pack("B", id) + "\x10" + struct.pack("!h",start_addr) + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count) #corrregit estructura pquete
+            length = 1 + 2 + 2 + 1 + 2 * reg_quantity
+            send_multiple = struct.pack("!h", tx_id) + "\x00\x00" + struct.pack("!h", length)  + struct.pack("B", id) + "\x10" + struct.pack("!h",start_addr) + struct.pack("!h", reg_quantity) + struct.pack("B", byte_count) #corrregit estructura pquete
 
             for value in range(0, reg_quantity):  # FUNCIONA CON 123 pero con 124 y 125 no
                 send_multiple = send_multiple + struct.pack("!H", int(reg_value[value]))
-            write_multiple_values(send_multiple)    #corregir funcion para tcp
+            write_multiple_values_tcp(send_multiple)    #corregir funcion para tcp
 
 
         sys.stdout = open ('output', 'r')
