@@ -2,6 +2,7 @@ __author__ = 'BlackSwan'
 
 import poplib
 import xml.etree.cElementTree as ET
+from ClassEmails import Email
 
 def fitler_list( mail ):
     del mail[0]
@@ -75,28 +76,42 @@ for i in range(number_of_mails):
         ET.SubElement(xml_trame, "potencia").text = trama[4]
         ET.SubElement(xml_trame, "presion").text = trama[5]
 
-    print trama
-
 tree = ET.ElementTree(root)
 tree.write("mails.xml")
 
-
 e = ET.parse('mails.xml').getroot()
 
+emails = []
+
 for mail in e.findall('mail'):
-    field1 = mail.find('From')
-    field2 = mail.find('To')
-    field3 = mail.find('Subject')
-    field4 = mail.find('Date')
-    for campo_trama in mail.find('trama'):
-        timestamp = campo_trama.find('timestamp')
-        temperatura = campo_trama.find('temperatura')
-        tension = campo_trama.find('tension')
-        corriente = campo_trama.find('corriente')
-        potencia = campo_trama.find('potencia')
-        presion =campo_trama.find('presion')
+    email = Email()
+    email.a_from = mail.find('From').text
+    email.a_to = mail.find('To').text
+    email.a_subject = mail.find('Subject').text
+    email.a_date = mail.find('Date').text
+    for campo_trama in mail.findall('trama'):
+        email.a_timestamp = campo_trama.find('timestamp').text
+        email.a_temperatura = campo_trama.find('temperatura').text
+        email.a_tension = campo_trama.find('tension').text
+        email.a_corriente = campo_trama.find('corriente').text
+        email.a_potencia = campo_trama.find('potencia').text
+        email.a_presion =campo_trama.find('presion').text
+    emails.append(email)
 
-
+for correo in emails:
+    values_correo = vars(correo)
+    print "========== INIT EMAIL =========="
+    print values_correo.get('a_from')
+    print values_correo.get('a_to')
+    print values_correo.get('a_subject')
+    print "Values:"
+    print "\t Timestamp: \t\t" + values_correo.get('a_timestamp')
+    print "\t Temperature: \t\t" + values_correo.get('a_temperatura') + "[C]"
+    print "\t Tension: \t\t\t" + values_correo.get('a_tension') + "[V]"
+    print "\t Corriente: \t\t" + values_correo.get('a_corriente') + "[A]"
+    print "\t Potencia: \t\t\t" + values_correo.get('a_potencia') + "[W]"
+    print "\t Presion: \t\t\t" + values_correo.get('a_presion') + "[PSI]"
+    print "========== END EMAIL =========="
 
 
 
