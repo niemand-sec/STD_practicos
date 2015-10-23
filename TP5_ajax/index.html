@@ -7,41 +7,52 @@
 	<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css">
 </head>
 <body>
+
+
 	<div class="container">
 		<div class="row">
+			<div class="jumbotron"><h3>Datos desde el demonio</h3></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter" value="" id="filter_from" placeholder="From" /></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter_temperatura" value="" id="filter_temperatura" placeholder="Temp" /></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter_tension" value="" id="filter_tension" placeholder="Tension" /></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter_corriente" value="" id="filter_corriente" placeholder="Corriente" /></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter_potencia" value="" id="filter_potencia" placeholder="Potencia" /></div>
+			<div class="col-xs-2"><input class="form-control" type="text" name="filter_presion" value="" id="filter_presion" placeholder="Presion" /></div>
+		</div>
+		<div class="row">
 
-			<h3 class="col-xs-12">Datos desde el demonio</h3>
 			<table id="item-table" class="table table-hover">
 				<thead>
 					<tr>
-						<td>#</td>
-						<td>From</td>
-						<td>To</td>
-						<td>Subject</td>
-						<td>Timestamp</td>
-						<td>Temp [°C]</td>
-						<td>Tension [V]</td>
-						<td>Ampere [A]</td>
-						<td>Power [Watts]</td>
-						<td>Pressure</td>
+						<td><b>#</b></td>
+						<td><b>From</b></td>
+						<td><b>To</b></td>
+						<td><b>Subject</b></td>
+						<td><b>Timestamp</b></td>
+						<td><b>Temp [°C]</b></td>
+						<td><b>Tension [V]</b></td>
+						<td><b>Ampere [A]</b></td>
+						<td><b>Power [Watts]</b></td>
+						<td><b>Pressure</b></td>
 					</tr>
 				</thead>
 				<tbody>
-					<!--<tr>-->
-						<!--<td id="number">1</td>-->
-						<!--<td id="from">master@email.com</td>-->
-						<!--<td id="to">mail@user.com</td>-->
-						<!--<td id="subject">Trama 2</td>-->
-						<!--<td id="timestamp">2008-11-22 22:00:00</td>-->
-						<!--<td id="temperatura">20</td>-->
-						<!--<td id="tension">10</td>-->
-						<!--<td id="corriente">5</td>-->
-						<!--<td id="potencia">200</td>-->
-						<!--<td id="presion">18</td>-->
-					<!--</tr>-->
+					<tr>
+						<td class="number">1</td>
+						<td class="from">master@email.com</td>
+						<td class="to">mail@user.com</td>
+						<td class="subject">Trama 2</td>
+						<td class="timestamp">2008-11-22 22:00:00</td>
+						<td class="temperatura">20</td>
+						<td class="tension">10</td>
+						<td class="corriente">5</td>
+						<td class="potencia">200</td>
+						<td class="presion">18</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>
+
 	</div>
 
 	<script src="js/jquery-2.1.4.min.js"></script>

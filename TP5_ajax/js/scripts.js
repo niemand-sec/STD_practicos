@@ -4,26 +4,26 @@ function showItems(){
 	// clear table body first
 	$("#item-table > tbody").empty();
 	// fill table with items
-	console.log('allItems');
+	//console.log('allItems');
 
 	for(var i=0; i < allItems.length; i++){
 		var tr = $("<tr>");
 		var trend = $("</tr>");
 
-		var number = $('<td id="number">' + i + '</td>');
-		var from = $('<td id="from">' + allItems[i].from + '</td>');
-		var to = $('<td id="to">' + allItems[i].to  + '</td>');
-		var subject = $('<td id="subject">' + allItems[i].subject + '</td>');
-		var timestamp = $('<td id="timestamp">' + allItems[i].timestamp + '</td>');
-		var temperatura = $('<td id="temperatura">' + allItems[i].temperatura + '</td>');
-		var tension = $('<td id="tension">' + allItems[i].tension + '</td>');
-		var corriente = $('<td id="corriente">' + allItems[i].corriente + '</td>');
-		var potencia = $('<td id="potencia">' + allItems[i].potencia + '</td>');
-		var presion = $('<td id="presion">' + allItems[i].presion + '</td>');
+		var number = $('<td class="number">' + i + '</td>');
+		var from = $('<td class="from">' + allItems[i].from + '</td>');
+		var to = $('<td class="to">' + allItems[i].to  + '</td>');
+		var subject = $('<td class="subject">' + allItems[i].subject + '</td>');
+		var timestamp = $('<td class="timestamp">' + allItems[i].timestamp + '</td>');
+		var temperatura = $('<td class="temperatura">' + allItems[i].temperatura + '</td>');
+		var tension = $('<td class="tension">' + allItems[i].tension + '</td>');
+		var corriente = $('<td class="corriente">' + allItems[i].corriente + '</td>');
+		var potencia = $('<td class="potencia">' + allItems[i].potencia + '</td>');
+		var presion = $('<td class="presion">' + allItems[i].presion + '</td>');
 
 
-		console.log(presion);
-		console.log("ASSSSSSSSSSSSSss");
+		//console.log(presion);
+		//console.log("ASSSSSSSSSSSSSss");
 		//$("#item-table > tbody").append(tr).append(number).append(from).append(to).append(subject).append(timestamp).append(temperatura).append(tension).append(corriente).append(potencia).append(presion).append(trend);
 		//$("#item-table > tbody").append(tr).append(number).append(from).append(to).append(subject).append(timestamp).append(temperatura).append(tension).append(corriente).append(potencia).append(presion).append(trend);
 		number.appendTo(tr);
@@ -37,7 +37,7 @@ function showItems(){
 		potencia.appendTo(tr);
 		presion.appendTo(tr);
 		$("#item-table > tbody").append(tr)
-		console.log(tr);
+		//console.log(tr);
 	}
 	// change page links
 };
@@ -66,19 +66,19 @@ jQuery(document).ready(function() {
 	                           	var intern_obj = Object.create({}, {
 
 	                           		from: {
-	                           			value: value_from,
+	                           			value: value_from.split(": ")[1],
 	                           			writable: true,
 	                           			enumerable: true,
 	                           			configurable: true
 	                           		},
 	                           		to: {
-	                           			value: value_to,
+	                           			value: value_to.split(": ")[1],
 	                           			writable: true,
 	                           			enumerable: true,
 	                           			configurable: true
 	                           		},
 	                           		subject: {
-	                           			value: value_subject,
+	                           			value: value_subject.split(": ")[1],
 	                           			writable: true,
 	                           			enumerable: true,
 	                           			configurable: true
@@ -122,19 +122,222 @@ jQuery(document).ready(function() {
 
 	                           	});
 
-	                            console.log(intern_obj.to);
-	                            console.log(intern_obj.presion);
-	                            console.log(intern_obj.temperatura);
-	                            console.log(intern_obj.timestamp);
+	                            //console.log(intern_obj.to);
+	                            //console.log(intern_obj.presion);
+	                            //console.log(intern_obj.temperatura);
+	                            //console.log(intern_obj.timestamp);
 
 	                            allItems[i] = intern_obj;
 	                            i++;
                     });
-
+					showItems();
                 }
 
             });
 
-            showItems();
+	//default each row to visible
+  $('tbody tr').addClass('visible');
+
+  $('#filter_from').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_from('tbody tr', $(this).val());
+    }
+	});
+	$('#filter_temperatura').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_temperatura('tbody tr', $(this).val());
+    }
+	});
+	$('#filter_tension').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_tension('tbody tr', $(this).val());
+    }
+	});
+	$('#filter_corriente').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_corriente('tbody tr', $(this).val());
+    }
+	});
+	$('#filter_potencia').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_potencia('tbody tr', $(this).val());
+    }
+	});
+    $('#filter_presion').keyup(function(event) {
+    //if esc is pressed or nothing is entered
+    if (event.keyCode == 27 || $(this).val() == '') {
+      //if esc is pressed we want to clear the value of search box
+      $(this).val('');
+
+      //we want each row to be visible because if nothing
+      //is entered then all rows are matched.
+      $('tbody tr').removeClass('visible').show().addClass('visible');
+    }
+    //if there is text, lets filter
+    else {
+      filter_presion('tbody tr', $(this).val());
+    }
 
 });
+});
+
+
+function filter_from(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+
+  $(".from").each(function() {
+		if ($(this).text().search(new RegExp(query, "i")) < 0)
+		{
+			//console.log($(this));
+			$(this).parent().hide().removeClass('visible');
+		} else {
+			//console.log("FALSE");
+			$(this).parent().show().addClass('visible');
+		}
+  });
+
+}
+
+
+
+function filter_temperatura(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+  sign = query.substring(0,1);
+  query = query.replace(sign,'');
+
+  $(".temperatura").each( function(){comparation($(this), query, sign);});
+
+}
+
+
+function filter_tension(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+  sign = query.substring(0,1);
+  query = query.replace(sign,'');
+  $(".tension").each( function(){comparation($(this), query, sign);});
+
+}
+
+
+function filter_corriente(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+  sign = query.substring(0,1);
+  query = query.replace(sign,'');
+
+  $(".corriente").each( function(){comparation($(this), query, sign);});
+
+}
+
+
+function filter_potencia(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+  sign = query.substring(0,1);
+  query = query.replace(sign,'');
+
+
+  $(".potencia").each( function(){comparation($(this), query, sign);});
+
+}
+
+
+
+function filter_presion(selector, query) {
+  query =   $.trim(query);
+  query = query.replace(/ /gi, '|');
+  sign = query.substring(0,1);
+  query = query.replace(sign,'');
+
+  $(".presion").each( function(){comparation($(this), query, sign);});
+
+}
+
+
+
+
+function comparation(obj, query, sign) {
+		switch(sign) {
+			case ">":
+				if (obj.text() > query)
+				{
+					obj.parent().show().addClass('visible');
+				} else {
+					obj.parent().hide().removeClass('visible');
+				}
+				break;
+			case "<":
+				if (parseInt(obj.text()) < query)
+				{
+					obj.parent().show().addClass('visible');
+				} else {
+					obj.parent().hide().removeClass('visible');
+				}
+				break;
+			case "=":
+				if (obj.text() == query)
+				{
+					obj.parent().show().addClass('visible');
+				} else {
+					obj.parent().hide().removeClass('visible');
+				}
+				break;
+			default:
+				alert("Not valid sign")
+				break;
+		}
+
+  }
