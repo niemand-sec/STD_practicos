@@ -11,15 +11,15 @@ function showItems(){
 		var trend = $("</tr>");
 
 		var number = $('<td class="number">' + i + '</td>');
-		var from = $('<td class="from">' + allItems[i].from + '</td>');
-		var to = $('<td class="to">' + allItems[i].to  + '</td>');
-		var subject = $('<td class="subject">' + allItems[i].subject + '</td>');
-		var timestamp = $('<td class="timestamp">' + allItems[i].timestamp + '</td>');
-		var temperatura = $('<td class="temperatura">' + allItems[i].temperatura + '</td>');
-		var tension = $('<td class="tension">' + allItems[i].tension + '</td>');
-		var corriente = $('<td class="corriente">' + allItems[i].corriente + '</td>');
-		var potencia = $('<td class="potencia">' + allItems[i].potencia + '</td>');
-		var presion = $('<td class="presion">' + allItems[i].presion + '</td>');
+		var from = $('<td class="from">' + allItems[i].From.split(": ")[1] + '</td>');
+		var to = $('<td class="to">' + allItems[i].To.split(": ")[1] + '</td>');
+		var subject = $('<td class="subject">' + allItems[i].Subject.split(": ")[1] + '</td>');
+		var timestamp = $('<td class="timestamp">' + allItems[i].trama.timestamp + '</td>');
+		var temperatura = $('<td class="temperatura">' + allItems[i].trama.temperatura + '</td>');
+		var tension = $('<td class="tension">' + allItems[i].trama.tension + '</td>');
+		var corriente = $('<td class="corriente">' + allItems[i].trama.corriente + '</td>');
+		var potencia = $('<td class="potencia">' + allItems[i].trama.potencia + '</td>');
+		var presion = $('<td class="presion">' + allItems[i].trama.presion + '</td>');
 
 
 		//console.log(presion);
@@ -43,97 +43,48 @@ function showItems(){
 };
 
 
-jQuery(document).ready(function() {
 
-	$.ajax({
 
-                type: "GET",
-                url: 'https://raw.githubusercontent.com/BlackSwann/STD_practicos/master/TP3_mail_xml_server/mails.xml',
-                dataType: "xml",
+function loadDoc(){
+	    showItems()
+		setInterval("showItems()", 6000);
+		console.log("Actualizado");
+	}
 
-                success: function(xml) {
-                	var i = 0;
-                    $(xml).find("mail").each(function () {
-	                        	var value_from = $(this).find('From').text();
-	                            var value_to = $(this).find('To').text();
-	                            var value_subject = $(this).find('Subject').text();
-	                           	var value_timestamp = $(this).find('timestamp').text();
-	                           	var value_temperatura = $(this).find('temperatura').text();
-	                           	var value_tension = $(this).find('tension').text();
-	                           	var value_corriente = $(this).find('corriente').text();
-	                           	var value_potencia = $(this).find('potencia').text();
-	                           	var value_presion = $(this).find('presion').text();
-	                           	var intern_obj = Object.create({}, {
 
-	                           		from: {
-	                           			value: value_from.split(": ")[1],
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		to: {
-	                           			value: value_to.split(": ")[1],
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		subject: {
-	                           			value: value_subject.split(": ")[1],
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		timestamp: {
-	                           			value: value_timestamp,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		temperatura: {
-	                           			value: value_temperatura,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		tension: {
-	                           			value: value_tension,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		corriente: {
-	                           			value: value_corriente,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		potencia: {
-	                           			value: value_potencia,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		},
-	                           		presion: {
-	                           			value: value_presion,
-	                           			writable: true,
-	                           			enumerable: true,
-	                           			configurable: true
-	                           		}
+function loadXml() {
 
-	                           	});
+$.getJSON("http://localhost/server-email.php", function( data ){
+		console.log("Entro por aca");
+		console.log(data);
+		console.log(data.mail);
+		allItems = data.mail;
 
-	                            //console.log(intern_obj.to);
-	                            //console.log(intern_obj.presion);
-	                            //console.log(intern_obj.temperatura);
-	                            //console.log(intern_obj.timestamp);
+		showItems();
 
-	                            allItems[i] = intern_obj;
-	                            i++;
-                    });
-					showItems();
-                }
+		if ($("#filter_from").val().length > 0) filter_from('tbody tr', $("#filter_from").val()) ;
+		if ($("#filter_temperatura").val().length > 0) filter_temperatura('tbody tr', $("#filter_temperatura").val());
+		if ($("#filter_tension").val().length > 0) filter_tension('tbody tr', $("#filter_tension").val());
+		if ($("#filter_corriente").val().length > 0) filter_corriente('tbody tr', $("#filter_corriente").val());
+		if ($("#filter_potencia").val().length > 0) filter_potencia('tbody tr', $("#filter_potencia").val());
+		if ($("#filter_presion").val().length > 0) filter_presion('tbody tr', $("#filter_presion").val());
+	});
 
-            });
+}
+
+
+jQuery(document).ready(function(){
+
+	loadXml();
+
+		setInterval("loadXml()", 6000);
+
+
+
+
+
+
+
 
 	//default each row to visible
   $('tbody tr').addClass('visible');
